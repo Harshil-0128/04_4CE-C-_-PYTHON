@@ -1,0 +1,103 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class SudokuGame:
+    def __init__(self, root):  # Fixed constructor name
+        self.root = root
+        self.root.title("Sudoku Game")
+        self.entries = [[None for _ in range(9)] for _ in range(9)]
+
+        self.initial_board = [
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9]
+        ]
+
+        self.draw_board()
+        self.create_buttons()
+
+    def draw_board(self):
+        for i in range(9):
+            for j in range(9):
+                e = tk.Entry(self.root, width=3, font=("Arial", 20), justify='center')
+                e.grid(row=i, column=j, padx=1, pady=1)
+
+                if self.initial_board[i][j] != 0:
+                    e.insert(0, str(self.initial_board[i][j]))
+                    e.config(state='disabled', disabledforeground='black')
+                self.entries[i][j] = e
+
+    def create_buttons(self):
+        tk.Button(self.root, text="Check Solution", command=self.check_solution).grid(row=9, column=0, columnspan=3, pady=10)
+        tk.Button(self.root, text="Clear All", command=self.clear_all).grid(row=9, column=3, columnspan=3)
+        tk.Button(self.root, text="Reset Puzzle", command=self.reset_puzzle).grid(row=9, column=6, columnspan=3)
+
+    def get_board(self):
+        board = []
+        for i in range(9):
+            row = []
+            for j in range(9):
+                val = self.entries[i][j].get()
+                if val.isdigit():
+                    row.append(int(val))
+                else:
+                    row.append(0)
+            board.append(row)
+        return board
+
+    def check_solution(self):
+        board = self.get_board()
+        if self.is_valid_solution(board):
+            messagebox.showinfo("Success", "Congratulations! You solved the Sudoku!")
+        else:
+            messagebox.showerror("Oops!", "There are errors in your solution.")
+
+    def clear_all(self):
+        for i in range(9):
+            for j in range(9):
+                if self.initial_board[i][j] == 0:
+                    self.entries[i][j].delete(0, tk.END)
+
+    def reset_puzzle(self):
+        for i in range(9):
+            for j in range(9):
+                self.entries[i][j].config(state='normal')
+                self.entries[i][j].delete(0, tk.END)
+                if self.initial_board[i][j] != 0:
+                    self.entries[i][j].insert(0, str(self.initial_board[i][j]))
+                    self.entries[i][j].config(state='disabled', disabledforeground='black')
+
+    def is_valid_solution(self, board):
+        def is_valid_block(block):
+            nums = [n for n in block if n != 0]
+            return len(nums) == len(set(nums))
+
+        for row in board:
+            if not is_valid_block(row):
+                return False
+
+        for col in zip(*board):
+            if not is_valid_block(col):
+                return False
+
+        for box_row in range(0, 9, 3):
+            for box_col in range(0, 9, 3):
+                block = [board[r][c] for r in range(box_row, box_row + 3) for c in range(box_col, box_col + 3)]
+                if not is_valid_block(block):
+                    return False
+
+        return all(all(cell != 0 for cell in row) for row in board)
+
+# Fixed main execution check
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = SudokuGame(root)
+    root.mainloop()
+
+
